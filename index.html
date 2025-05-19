@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upload de Frequência Google Meet</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    label, button, textarea {
+      display: block;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    textarea {
+      height: 150px;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>Upload de Frequência Google Meet</h2>
+  <form id="uploadForm">
+    <label for="fileInput">Selecione o arquivo:</label>
+    <input type="file" id="fileInput" name="file" required />
+
+    <button type="submit">Analisar</button>
+
+    <label for="result">Lista de dados retornada:</label>
+    <textarea id="result" disabled placeholder="Os dados aparecerão aqui..."></textarea>
+  </form>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+const fileInput = document.getElementById('fileInput');
+const resultTextarea = document.getElementById('result');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const file = fileInput.files[0];
+  if (!file) {
+    alert('Selecione um arquivo');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch('http://localhost:3000/upload', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const msg = await res.text();
+    alert(`Erro: ${msg}`);
+    return;
+  }
+
+  const csvText = await res.text();
+
+
+const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+
+const dataLines = lines.slice(1);
+
+const nomes = dataLines.map(line => {
+  const cols = line.split(',');
+  return cols[0].trim();
+}).sort((a, b) => a.localeCompare(b));
+
+resultTextarea.value = nomes.join('\n');
+});
+
+  </script>
+</body>
+</html>
